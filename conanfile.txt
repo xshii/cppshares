@@ -1,0 +1,32 @@
+[requires]
+# JSON处理库 - 用于配置文件和API数据序列化
+nlohmann_json/3.11.3
+# 轻量级HTTP服务器 - 用于Web API接口
+cpp-httplib/0.18.0
+# 嵌入式数据库 - 用于本地数据存储
+sqlite3/3.43.2
+# 高性能日志库 - 用于系统日志记录
+spdlog/1.12.0
+# 线性代数库 - 用于数学计算和矩阵运算
+eigen/3.4.0
+# 单元测试框架 - 用于代码测试
+gtest/1.14.0
+
+[generators]
+CMakeDeps
+CMakeToolchain
+
+
+[options]
+# SQLite线程安全模式 - 支持多线程访问数据库 (2=完全线程安全)
+sqlite3/*:threadsafe=2
+# spdlog仅头文件模式 - 减少编译时间和二进制大小
+spdlog/*:header_only=True
+# cpp-httplib开发模式 - 禁用SSL减少依赖
+cpp-httplib/*:with_openssl=False
+# cpp-httplib支持压缩 - 启用gzip压缩减少网络传输
+cpp-httplib/*:with_zlib=True
+
+[imports]
+bin, *.dll -> ./bin
+lib, *.dylib* -> ./bin
