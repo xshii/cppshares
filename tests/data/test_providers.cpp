@@ -177,15 +177,14 @@ TEST_F(ProvidersTest, ErrorHandling) {
 
 // 检查是否在CI环境中运行
 static bool is_running_in_ci() {
-    return std::getenv("GITHUB_ACTIONS") != nullptr ||
-           std::getenv("CI") != nullptr ||
+    return std::getenv("GITHUB_ACTIONS") != nullptr || std::getenv("CI") != nullptr ||
            std::getenv("CONTINUOUS_INTEGRATION") != nullptr;
 }
 
 // 通用数据获取测试 - 东方财富
 TEST_F(ProvidersTest, EastMoneyProvider_DataFetching) {
     EastMoneyProvider provider;
-    
+
     // 测试股票列表
     std::vector<Symbol> test_stocks = {
         Symbol("600597", Market::SH, SecurityType::STOCK),  // 上海悦达
@@ -199,10 +198,10 @@ TEST_F(ProvidersTest, EastMoneyProvider_DataFetching) {
     }
 
     std::cout << "\n=== EastMoney Provider Data Fetching Test ===" << std::endl;
-    
+
     for (const auto& symbol : test_stocks) {
         std::cout << "Testing symbol: " << symbol.to_string() << std::endl;
-        
+
         // 测试实时行情获取
         auto tick = provider.get_realtime_quote(symbol);
         if (tick.has_value()) {
@@ -216,7 +215,7 @@ TEST_F(ProvidersTest, EastMoneyProvider_DataFetching) {
         // 测试K线数据获取
         auto klines = provider.get_kline_data(symbol, KlinePeriod::DAY_1, 5);
         std::cout << "  Klines count: " << klines.size() << std::endl;
-        
+
         if (!klines.empty()) {
             const auto& latest = klines.back();
             EXPECT_GT(latest.open, 0.0);
@@ -230,7 +229,7 @@ TEST_F(ProvidersTest, EastMoneyProvider_DataFetching) {
 // 通用数据获取测试 - 新浪财经
 TEST_F(ProvidersTest, SinaProvider_DataFetching) {
     SinaProvider provider;
-    
+
     std::vector<Symbol> test_stocks = {
         Symbol("600597", Market::SH, SecurityType::STOCK),  // 上海悦达
         Symbol("000001", Market::SZ, SecurityType::STOCK),  // 平安银行
@@ -243,10 +242,10 @@ TEST_F(ProvidersTest, SinaProvider_DataFetching) {
     }
 
     std::cout << "\n=== Sina Provider Data Fetching Test ===" << std::endl;
-    
+
     for (const auto& symbol : test_stocks) {
         std::cout << "Testing symbol: " << symbol.to_string() << std::endl;
-        
+
         auto tick = provider.get_realtime_quote(symbol);
         if (tick.has_value()) {
             EXPECT_FALSE(tick->symbol.empty());
@@ -264,7 +263,7 @@ TEST_F(ProvidersTest, SinaProvider_DataFetching) {
 // 通用数据获取测试 - 腾讯财经
 TEST_F(ProvidersTest, TencentProvider_DataFetching) {
     TencentProvider provider;
-    
+
     std::vector<Symbol> test_stocks = {
         Symbol("600597", Market::SH, SecurityType::STOCK),  // 上海悦达
         Symbol("000001", Market::SZ, SecurityType::STOCK),  // 平安银行
@@ -277,10 +276,10 @@ TEST_F(ProvidersTest, TencentProvider_DataFetching) {
     }
 
     std::cout << "\n=== Tencent Provider Data Fetching Test ===" << std::endl;
-    
+
     for (const auto& symbol : test_stocks) {
         std::cout << "Testing symbol: " << symbol.to_string() << std::endl;
-        
+
         auto tick = provider.get_realtime_quote(symbol);
         if (tick.has_value()) {
             EXPECT_FALSE(tick->symbol.empty());
@@ -298,7 +297,7 @@ TEST_F(ProvidersTest, TencentProvider_DataFetching) {
 // 通用数据获取测试 - 网易财经
 TEST_F(ProvidersTest, NeteaseProvider_DataFetching) {
     NeteaseProvider provider;
-    
+
     std::vector<Symbol> test_stocks = {
         Symbol("600597", Market::SH, SecurityType::STOCK),  // 上海悦达
         Symbol("000001", Market::SZ, SecurityType::STOCK),  // 平安银行
@@ -311,10 +310,10 @@ TEST_F(ProvidersTest, NeteaseProvider_DataFetching) {
     }
 
     std::cout << "\n=== Netease Provider Data Fetching Test ===" << std::endl;
-    
+
     for (const auto& symbol : test_stocks) {
         std::cout << "Testing symbol: " << symbol.to_string() << std::endl;
-        
+
         auto tick = provider.get_realtime_quote(symbol);
         if (tick.has_value()) {
             EXPECT_FALSE(tick->symbol.empty());
@@ -348,18 +347,18 @@ TEST_F(ProvidersTest, AllProviders_DataComparison) {
     providers.push_back(std::make_unique<NeteaseProvider>());
 
     std::cout << "\n=== Multi-Provider Data Comparison ===" << std::endl;
-    
+
     for (const auto& symbol : test_stocks) {
         std::cout << "\nSymbol: " << symbol.to_string() << std::endl;
         std::vector<std::optional<MarketTick>> ticks;
-        
+
         for (const auto& provider : providers) {
             auto tick = provider->get_realtime_quote(symbol);
             ticks.push_back(tick);
-            
+
             if (tick.has_value()) {
-                std::cout << "  " << provider->get_name() << " - Price: " << tick->price 
-                         << ", Volume: " << tick->volume << std::endl;
+                std::cout << "  " << provider->get_name() << " - Price: " << tick->price
+                          << ", Volume: " << tick->volume << std::endl;
             } else {
                 std::cout << "  " << provider->get_name() << " - No data" << std::endl;
             }
@@ -377,11 +376,11 @@ TEST_F(ProvidersTest, AllProviders_DataComparison) {
             double min_price = *std::min_element(valid_prices.begin(), valid_prices.end());
             double max_price = *std::max_element(valid_prices.begin(), valid_prices.end());
             double price_diff_ratio = (max_price - min_price) / min_price;
-            
-            std::cout << "  Price range: " << min_price << " - " << max_price 
-                     << " (diff: " << std::fixed << std::setprecision(2) 
-                     << price_diff_ratio * 100 << "%)" << std::endl;
-            
+
+            std::cout << "  Price range: " << min_price << " - " << max_price
+                      << " (diff: " << std::fixed << std::setprecision(2) << price_diff_ratio * 100
+                      << "%)" << std::endl;
+
             // 价格差异应该在合理范围内
             if (price_diff_ratio > 0.1) {
                 std::cout << "  WARNING: Large price difference detected!" << std::endl;
