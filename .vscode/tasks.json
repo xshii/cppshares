@@ -5,7 +5,7 @@
             "label": "Configure Debug",
             "type": "shell",
             "command": "cmake",
-            "args": ["--preset", "debug"],
+            "args": ["--preset", "conan-debug"],
             "group": "build",
             "options": {
                 "cwd": "${workspaceFolder}"
@@ -24,7 +24,7 @@
             "label": "Build Debug",
             "type": "shell",
             "command": "cmake",
-            "args": ["--build", "build/debug"],
+            "args": ["--build", "--preset", "conan-debug"],
             "group": {
                 "kind": "build",
                 "isDefault": true
@@ -50,7 +50,7 @@
             "label": "Build Release",
             "type": "shell",
             "command": "cmake",
-            "args": ["--build", "--preset", "release"],
+            "args": ["--build", "--preset", "conan-debug"],
             "group": "build",
             "options": {
                 "cwd": "${workspaceFolder}"
