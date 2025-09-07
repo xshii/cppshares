@@ -48,20 +48,5 @@ std::string Symbol::to_string() const {
            type_names[static_cast<int>(type)];
 }
 
-// DataTypeUtils 实现
-std::string DataTypeUtils::to_sina_format(const Symbol& symbol) {
-    static const std::array<const char*, 5> prefixes = {"sh", "sz", "bj", "hk", "us"};
-    return std::string(prefixes[static_cast<int>(symbol.market)]) + symbol.code;
-}
-
-std::string DataTypeUtils::to_tencent_format(const Symbol& symbol) {
-    static const std::array<const char*, 5> prefixes = {"sh", "sz", "bj", "hk", "us"};
-    return std::string(prefixes[static_cast<int>(symbol.market)]) + symbol.code;
-}
-
-std::string DataTypeUtils::to_netease_format(const Symbol& symbol) {
-    static const std::array<const char*, 5> prefixes = {"0", "1", "2", "3", "4"};
-    return std::string(prefixes[static_cast<int>(symbol.market)]) + symbol.code;
-}
 
 }  // namespace cppshares::data

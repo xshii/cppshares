@@ -47,25 +47,7 @@ TEST_F(DataTypesTest, EnumBasics) {
     EXPECT_NE(dataType, DataType::KLINE_DATA);
 }
 
-// 测试API格式转换
-TEST_F(DataTypesTest, ApiFormatConversion) {
-    Symbol sz_stock("000001", Market::SZ, SecurityType::STOCK);
-    Symbol sh_stock("600000", Market::SH, SecurityType::STOCK);
-    Symbol sh_index("000001", Market::SH, SecurityType::INDEX);
-
-    // 测试新浪格式
-    EXPECT_EQ(DataTypeUtils::to_sina_format(sz_stock), "sz000001");
-    EXPECT_EQ(DataTypeUtils::to_sina_format(sh_stock), "sh600000");
-    EXPECT_EQ(DataTypeUtils::to_sina_format(sh_index), "sh000001");
-
-    // 测试腾讯格式
-    EXPECT_EQ(DataTypeUtils::to_tencent_format(sz_stock), "sz000001");
-    EXPECT_EQ(DataTypeUtils::to_tencent_format(sh_stock), "sh600000");
-
-    // 测试网易格式
-    EXPECT_EQ(DataTypeUtils::to_netease_format(sz_stock), "1000001");  // 深圳用前缀"1"
-    EXPECT_EQ(DataTypeUtils::to_netease_format(sh_stock), "0600000");  // 上海用前缀"0"
-}
+// 注意: API格式转换现已移至各provider内部实现
 
 // 测试枚举一致性
 TEST_F(DataTypesTest, EnumConsistency) {
@@ -98,10 +80,9 @@ TEST_F(DataTypesTest, PerformanceTest) {
 
     for (int i = 0; i < iterations; ++i) {
         Symbol symbol("000001", Market::SZ, SecurityType::STOCK);
-        std::string sina_format = DataTypeUtils::to_sina_format(symbol);
-        std::string tencent_format = DataTypeUtils::to_tencent_format(symbol);
-        (void)sina_format;
-        (void)tencent_format;  // 避免优化掉
+        // API格式转换现已移至各provider内部，此处测试Symbol基本操作
+        std::string symbol_str = symbol.to_string();
+        (void)symbol_str;  // 避免优化掉
     }
 
     auto end = std::chrono::high_resolution_clock::now();

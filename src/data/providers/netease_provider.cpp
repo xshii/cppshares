@@ -62,7 +62,13 @@ std::vector<OHLCV> NeteaseProvider::parse_kline_response(const std::string& resp
 }
 
 std::string NeteaseProvider::convert_to_netease_symbol(const Symbol& symbol) {
-    return DataTypeUtils::to_netease_format(symbol);
+    // 网易格式: 0600000(沪市), 1000001(深市) 
+    static const std::array<const char*, 5> prefixes = {"0", "1", "2", "3", "4"};
+    int market_index = static_cast<int>(symbol.market);
+    if (market_index >= 0 && market_index < static_cast<int>(prefixes.size())) {
+        return std::string(prefixes[market_index]) + symbol.code;
+    }
+    return "0" + symbol.code;  // 默认沪市
 }
 
 }  // namespace cppshares::data::providers

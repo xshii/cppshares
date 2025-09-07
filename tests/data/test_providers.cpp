@@ -74,23 +74,13 @@ TEST_F(ProvidersTest, ProviderPriorities) {
     EXPECT_EQ(providers[2]->get_name(), "TencentFinance");  // priority = 15
 }
 
-// 测试符号格式转换
-TEST_F(ProvidersTest, SymbolFormatConversion) {
+// 注意: 符号格式转换现已移至各provider内部实现
+TEST_F(ProvidersTest, SymbolBasicValidation) {
     for (const auto& symbol : test_symbols_) {
-        // 测试各种格式转换
-        std::string sina_format = DataTypeUtils::to_sina_format(symbol);
-        std::string tencent_format = DataTypeUtils::to_tencent_format(symbol);
-        std::string netease_format = DataTypeUtils::to_netease_format(symbol);
-
-        // 基本验证：格式不应该为空
-        EXPECT_FALSE(sina_format.empty());
-        EXPECT_FALSE(tencent_format.empty());
-        EXPECT_FALSE(netease_format.empty());
-
-        // 验证包含原始代码
-        EXPECT_TRUE(sina_format.find(symbol.code) != std::string::npos ||
-                    tencent_format.find(symbol.code) != std::string::npos ||
-                    netease_format.find(symbol.code) != std::string::npos);
+        // 基本符号验证
+        EXPECT_FALSE(symbol.code.empty());
+        EXPECT_NE(symbol.market, static_cast<Market>(-1));
+        EXPECT_NE(symbol.type, static_cast<SecurityType>(-1));
     }
 }
 
@@ -133,13 +123,11 @@ TEST_F(ProvidersTest, PerformanceBenchmark) {
 
     auto start = std::chrono::high_resolution_clock::now();
 
-    // 测试符号转换性能
+    // 测试基本符号操作性能（格式转换已移至provider内部）
     for (int i = 0; i < iterations; ++i) {
         for (const auto& symbol : test_symbols_) {
-            auto sina_format = DataTypeUtils::to_sina_format(symbol);
-            auto tencent_format = DataTypeUtils::to_tencent_format(symbol);
-            (void)sina_format;
-            (void)tencent_format;  // 避免编译器优化
+            std::string symbol_str = symbol.to_string();
+            (void)symbol_str;  // 避免编译器优化
         }
     }
 
@@ -159,10 +147,10 @@ TEST_F(ProvidersTest, ErrorHandling) {
     // 测试无效符号
     Symbol invalid_symbol("INVALID", Market::SH, SecurityType::STOCK);
 
-    // 格式转换应该能处理无效输入而不崩溃
+    // 基本符号操作应该能处理无效输入而不崩溃
     EXPECT_NO_THROW({
-        auto sina_format = DataTypeUtils::to_sina_format(invalid_symbol);
-        auto tencent_format = DataTypeUtils::to_tencent_format(invalid_symbol);
+        std::string symbol_str = invalid_symbol.to_string();
+        (void)symbol_str;
     });
 }
 

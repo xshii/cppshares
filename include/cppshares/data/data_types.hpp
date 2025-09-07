@@ -63,16 +63,6 @@ struct Symbol {
     }
 };
 
-// 工具类：API格式转换（仅用于外部API调用）
-class DataTypeUtils {
-public:
-    // 符号转换（针对不同API提供者）
-    static std::string to_sina_format(const Symbol& symbol);
-    static std::string to_tencent_format(const Symbol& symbol);
-    static std::string to_netease_format(const Symbol& symbol);
-};
-
-
 }  // namespace cppshares::data
 
 // 为Symbol提供hash支持，用于unordered_map

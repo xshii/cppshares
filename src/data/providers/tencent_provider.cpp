@@ -53,7 +53,13 @@ std::vector<OHLCV> TencentProvider::parse_kline_response(const std::string& resp
 }
 
 std::string TencentProvider::convert_to_tencent_symbol(const Symbol& symbol) {
-    return DataTypeUtils::to_tencent_format(symbol);
+    // 腾讯格式: sh600000, sz000001 (与新浪相同)
+    static const std::array<const char*, 5> prefixes = {"sh", "sz", "bj", "hk", "us"};
+    int market_index = static_cast<int>(symbol.market);
+    if (market_index >= 0 && market_index < static_cast<int>(prefixes.size())) {
+        return std::string(prefixes[market_index]) + symbol.code;
+    }
+    return "sh" + symbol.code;  // 默认沪市
 }
 
 }  // namespace cppshares::data::providers
