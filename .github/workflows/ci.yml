@@ -47,17 +47,29 @@ jobs:
     - name: Build
       run: cmake --build --preset conan-${{ matrix.build_type == 'Debug' && 'debug' || 'release' }}
       
-    - name: Test
-      run: ctest --preset conan-${{ matrix.build_type == 'Debug' && 'debug' || 'release' }} --verbose
+    - name: Run GTest
+      run: |
+        cd cmake/conan
+        ./tests/cppshares_tests --gtest_output=xml:test_results.xml --gtest_color=yes
+        
+    - name: Run CTest
+      run: ctest --preset conan-${{ matrix.build_type == 'Debug' && 'debug' || 'release' }} --output-on-failure
       
     - name: Upload test results
-      if: failure()
+      if: always()
       uses: actions/upload-artifact@v3
       with:
         name: test-results-${{ matrix.os }}-${{ matrix.build_type }}
         path: |
+          cmake/conan/test_results.xml
           cmake/conan/Testing/
-          *.log
+          
+    - name: Publish test results
+      if: always()
+      uses: EnricoMi/publish-unit-test-result-action@v2
+      with:
+        files: cmake/conan/test_results.xml
+        check_name: "Test Results (${{ matrix.os }}, ${{ matrix.build_type }})"
 
   lint:
     runs-on: ubuntu-latest

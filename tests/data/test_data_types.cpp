@@ -62,8 +62,8 @@ TEST_F(DataTypesTest, ApiFormatConversion) {
     EXPECT_EQ(DataTypeUtils::to_tencent_format(sh_stock), "sh600000");
     
     // 测试网易格式
-    EXPECT_EQ(DataTypeUtils::to_netease_format(sz_stock), "0000001");
-    EXPECT_EQ(DataTypeUtils::to_netease_format(sh_stock), "0600000");
+    EXPECT_EQ(DataTypeUtils::to_netease_format(sz_stock), "1000001");  // 深圳用前缀"1"
+    EXPECT_EQ(DataTypeUtils::to_netease_format(sh_stock), "0600000");  // 上海用前缀"0"
 }
 
 // 测试枚举一致性

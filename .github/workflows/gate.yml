@@ -1,0 +1,186 @@
+name: Gate Check
+
+# 门禁检查：所有检查必须通过才能合并
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main ]
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    if: always()
+    needs: [build-and-test, code-quality]
+    steps:
+    - name: Check all jobs status
+      run: |
+        echo "Build and test status: ${{ needs.build-and-test.result }}"
+        echo "Code quality status: ${{ needs.code-quality.result }}"
+        
+        if [[ "${{ needs.build-and-test.result }}" != "success" || "${{ needs.code-quality.result }}" != "success" ]]; then
+          echo "❌ Gate check failed!"
+          exit 1
+        else
+          echo "✅ All checks passed!"
+        fi
+
+  build-and-test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false  # 继续运行其他配置，即使某个失败
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        build_type: [Debug, Release]
+        include:
+          - os: ubuntu-latest
+            cc: gcc-11
+            cxx: g++-11
+          - os: macos-latest  
+            cc: clang
+            cxx: clang++
+            
+    env:
+      CC: ${{ matrix.cc }}
+      CXX: ${{ matrix.cxx }}
+      
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup build environment (Ubuntu)
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y gcc-11 g++-11 cmake
+        
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        
+    - name: Install and setup Conan
+      run: |
+        pip install conan>=2.0.0
+        conan profile detect --force
+        
+    - name: Cache Conan packages
+      uses: actions/cache@v3
+      with:
+        path: ~/.conan2
+        key: conan-${{ runner.os }}-${{ matrix.build_type }}-${{ hashFiles('conanfile.txt') }}
+        restore-keys: |
+          conan-${{ runner.os }}-${{ matrix.build_type }}-
+          conan-${{ runner.os }}-
+          
+    - name: Install dependencies
+      run: |
+        conan install . --output-folder=cmake/conan --build=missing \
+          -s build_type=${{ matrix.build_type }}
+        
+    - name: Configure CMake
+      run: cmake --preset conan-${{ matrix.build_type == 'Debug' && 'debug' || 'release' }}
+      
+    - name: Build project
+      run: cmake --build --preset conan-${{ matrix.build_type == 'Debug' && 'debug' || 'release' }}
+      
+    - name: Run unit tests
+      run: |
+        cd cmake/conan
+        # 设置测试超时为10分钟
+        timeout 600 ./tests/cppshares_tests --gtest_output=xml:test_results.xml \
+          --gtest_color=yes --gtest_shuffle --gtest_repeat=1
+        
+    - name: Run integration tests
+      run: |
+        cd cmake/conan
+        ctest --preset conan-${{ matrix.build_type == 'Debug' && 'debug' || 'release' }} \
+          --output-on-failure --timeout 300
+      
+    - name: Check test coverage (Debug only)
+      if: matrix.build_type == 'Debug' && matrix.os == 'ubuntu-latest'
+      run: |
+        # 简单的覆盖率检查
+        echo "TODO: 添加覆盖率检查工具 (gcov/lcov)"
+        
+    - name: Publish test results
+      if: always()
+      uses: EnricoMi/publish-unit-test-result-action@v2
+      with:
+        files: cmake/conan/test_results.xml
+        check_name: "Unit Tests (${{ matrix.os }}, ${{ matrix.build_type }})"
+        
+    - name: Upload artifacts on failure
+      if: failure()
+      uses: actions/upload-artifact@v3
+      with:
+        name: debug-artifacts-${{ matrix.os }}-${{ matrix.build_type }}
+        path: |
+          cmake/conan/test_results.xml
+          cmake/conan/Testing/
+          cmake/conan/*.log
+          core
+        retention-days: 3
+
+  code-quality:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup quality tools
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y clang-format cppcheck clang-tidy
+        
+    - name: Check code formatting
+      run: |
+        echo "🔍 Checking code formatting..."
+        find src include tests -name '*.cpp' -o -name '*.hpp' | \
+        xargs clang-format --dry-run --Werror --style=file || {
+          echo "❌ Code formatting check failed!"
+          echo "Run 'clang-format -i \$(find src include tests -name '*.cpp' -o -name '*.hpp')' to fix"
+          exit 1
+        }
+        echo "✅ Code formatting passed!"
+        
+    - name: Static analysis with cppcheck
+      run: |
+        echo "🔍 Running static analysis..."
+        cppcheck --enable=all --error-exitcode=1 --suppress=missingIncludeSystem \
+          --quiet src/ include/ || {
+          echo "❌ Static analysis found issues!"
+          exit 1
+        }
+        echo "✅ Static analysis passed!"
+        
+    - name: Check for common issues
+      run: |
+        echo "🔍 Checking for common C++ issues..."
+        # 检查是否有TODO标记的遗留问题
+        if grep -r "TODO.*FIXME\|HACK" src/ include/ tests/ 2>/dev/null; then
+          echo "⚠️  Found TODO/FIXME/HACK comments - consider addressing them"
+        fi
+        
+        # 检查是否有调试代码
+        if grep -r "std::cout\|printf\|std::cerr" src/ include/ 2>/dev/null | grep -v test; then
+          echo "❌ Found debug print statements in non-test code!"
+          exit 1
+        fi
+        
+        echo "✅ Code quality checks passed!"
+
+# 状态检查配置
+  status-check:
+    runs-on: ubuntu-latest
+    if: always()
+    needs: [gate]
+    steps:
+    - name: Set status
+      run: |
+        if [[ "${{ needs.gate.result }}" == "success" ]]; then
+          echo "✅ All gate checks passed - ready to merge!"
+        else
+          echo "❌ Gate checks failed - merge blocked!"
+          exit 1
+        fi
