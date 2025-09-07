@@ -65,7 +65,7 @@ jobs:
           cmake/conan/Testing/
           
     - name: Publish test results
-      if: always()
+      if: always() && matrix.os == 'ubuntu-latest'
       uses: EnricoMi/publish-unit-test-result-action@v2
       with:
         files: cmake/conan/test_results.xml

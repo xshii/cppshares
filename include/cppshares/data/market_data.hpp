@@ -1,7 +1,7 @@
 #pragma once
 
-#include <string>
 #include <chrono>
+#include <string>
 #include <vector>
 
 namespace cppshares::data {
@@ -15,8 +15,8 @@ struct MarketTick {
     double ask_price;
     uint64_t bid_volume;
     uint64_t ask_volume;
-    double change_rate;  // 涨跌幅
-    double change_amount; // 涨跌额
+    double change_rate;    // 涨跌幅
+    double change_amount;  // 涨跌额
     std::chrono::system_clock::time_point timestamp;
 };
 
@@ -32,4 +32,4 @@ struct OHLCV {
     double amount;  // 成交金额
 };
 
-} // namespace cppshares::data
+}  // namespace cppshares::data

@@ -1,4 +1,5 @@
 #include "cppshares/data/providers/netease_provider.hpp"
+
 #include "cppshares/data/data_types.hpp"
 
 namespace cppshares::data::providers {
@@ -10,31 +11,31 @@ NeteaseProvider::NeteaseProvider() : client_(BASE_URL) {
 
 std::optional<MarketTick> NeteaseProvider::get_realtime_quote(const Symbol& symbol) {
     std::lock_guard<std::mutex> lock(mutex_);
-    
+
     std::string netease_symbol = convert_to_netease_symbol(symbol);
     std::string path = "/data/feed/" + netease_symbol;
-    
+
     auto result = client_.Get(path);
     if (result && result->status == 200) {
         return parse_realtime_response(result->body, symbol);
     }
-    
+
     return std::nullopt;
 }
 
-std::vector<OHLCV> NeteaseProvider::get_kline_data(const Symbol& symbol, 
-                                                   KlinePeriod period, 
+std::vector<OHLCV> NeteaseProvider::get_kline_data(const Symbol& symbol,
+                                                   KlinePeriod period,
                                                    int limit) {
     std::lock_guard<std::mutex> lock(mutex_);
-    
+
     std::string netease_symbol = convert_to_netease_symbol(symbol);
     std::string path = "/data/hs/kline/" + netease_symbol;
-    
+
     auto result = client_.Get(path);
     if (result && result->status == 200) {
         return parse_kline_response(result->body, symbol);
     }
-    
+
     return {};
 }
 
@@ -43,20 +44,20 @@ bool NeteaseProvider::health_check() {
     return result && result->status == 200;
 }
 
-std::optional<MarketTick> NeteaseProvider::parse_realtime_response(const std::string& response, 
-                                                                  const Symbol& symbol) {
+std::optional<MarketTick> NeteaseProvider::parse_realtime_response(const std::string& response,
+                                                                   const Symbol& symbol) {
     // 简单的解析实现
     MarketTick tick;
     tick.symbol = symbol.to_string();
     tick.price = 0.0;
     tick.volume = 0;
     tick.timestamp = std::chrono::system_clock::now();
-    
+
     return tick;
 }
 
-std::vector<OHLCV> NeteaseProvider::parse_kline_response(const std::string& response, 
-                                                        const Symbol& symbol) {
+std::vector<OHLCV> NeteaseProvider::parse_kline_response(const std::string& response,
+                                                         const Symbol& symbol) {
     return {};
 }
 
@@ -64,4 +65,4 @@ std::string NeteaseProvider::convert_to_netease_symbol(const Symbol& symbol) {
     return DataTypeUtils::to_netease_format(symbol);
 }
 
-} // namespace cppshares::data::providers
+}  // namespace cppshares::data::providers

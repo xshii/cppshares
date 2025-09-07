@@ -1,4 +1,5 @@
 #include "cppshares/api/server.hpp"
+
 #include "cppshares/utils/logger.hpp"
 
 namespace cppshares::api {
@@ -6,11 +7,11 @@ namespace cppshares::api {
 bool WebServer::start(const std::string& host, uint16_t port) {
     host_ = host;
     port_ = port;
-    
+
     cppshares::utils::Logger::info("Starting web server on {}:{}", host_, port_);
-    
+
     setup_routes();
-    
+
     // TODO: Start httplib server
     running_ = true;
     return running_;
@@ -33,4 +34,4 @@ void WebServer::setup_routes() {
     cppshares::utils::Logger::info("Setting up API routes...");
 }
 
-} // namespace cppshares::api
+}  // namespace cppshares::api
