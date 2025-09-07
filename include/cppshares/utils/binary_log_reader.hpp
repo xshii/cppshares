@@ -190,8 +190,11 @@ private:
         auto symbol = get_symbol_name(record.symbol_id);
         auto side = record.side == 0 ? "BUY" : "SELL";
         
+        // 复制packed字段值避免引用绑定问题
+        double price = record.price;
+        uint64_t volume = record.volume;
         csv << std::format("{},{},{:.6f},{},{}\n",
-            time_str, symbol, record.price, record.volume, side);
+            time_str, symbol, price, volume, side);
     }
     
     void export_order_record(std::ofstream& csv, const BinaryLogEntry& header) {
@@ -210,9 +213,12 @@ private:
             default: status = "UNKNOWN"; break;
         }
         
+        // 复制packed字段值避免引用绑定问题
+        uint64_t order_id = record.order_id;
+        double price = record.price;
+        uint32_t quantity = record.quantity;
         csv << std::format("{},{},{},{:.6f},{},{},{}\n",
-            time_str, record.order_id, symbol, record.price, 
-            record.quantity, side, status);
+            time_str, order_id, symbol, price, quantity, side, status);
     }
     
     void export_strategy_signal_record(std::ofstream& csv, const BinaryLogEntry& header) {
@@ -231,9 +237,13 @@ private:
             default: signal_type = "UNKNOWN"; break;
         }
         
+        // 复制packed字段值避免引用绑定问题
+        uint8_t confidence = record.confidence;
+        double target_price = record.target_price;
+        uint32_t target_quantity = record.target_quantity;
         csv << std::format("{},{},{},{},{},{:.6f},{}\n",
-            time_str, strategy, symbol, signal_type, record.confidence,
-            record.target_price, record.target_quantity);
+            time_str, strategy, symbol, signal_type, confidence,
+            target_price, target_quantity);
     }
     
     std::string format_timestamp(uint64_t timestamp_us) {
