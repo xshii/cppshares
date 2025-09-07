@@ -1,10 +1,10 @@
 #include "cppshares/data/providers/eastmoney_provider.hpp"
+
 #include "cppshares/data/data_types.hpp"
 
 namespace cppshares::data::providers {
 
-EastMoneyProvider::EastMoneyProvider()
-    : client_(BASE_URL), kline_client_(KLINE_URL) {
+EastMoneyProvider::EastMoneyProvider() : client_(BASE_URL), kline_client_(KLINE_URL) {
     client_.set_connection_timeout(5, 0);
     client_.set_read_timeout(10, 0);
     kline_client_.set_connection_timeout(5, 0);
@@ -61,7 +61,7 @@ std::string EastMoneyProvider::format_symbol_for_eastmoney(const Symbol& symbol)
 }
 
 std::optional<MarketTick> EastMoneyProvider::parse_realtime_response(const std::string& response,
-                                                                    const Symbol& symbol) {
+                                                                     const Symbol& symbol) {
     try {
         auto json = nlohmann::json::parse(response);
         if (json.contains("data") && json["data"].contains("f43")) {
@@ -88,7 +88,7 @@ std::string EastMoneyProvider::period_to_eastmoney_format(KlinePeriod period) {
     // 东方财富klt参数: 1=1min, 5=5min, 15=15min, 30=30min, 60=60min, 101=日, 102=周, 103=月
     static const std::array<const char*, 9> period_names = {
         "1", "5", "15", "30", "60", "240", "101", "102", "103"};
-    
+
     int index = static_cast<int>(period);
     if (index >= 0 && index < static_cast<int>(period_names.size())) {
         return period_names[index];
@@ -96,4 +96,4 @@ std::string EastMoneyProvider::period_to_eastmoney_format(KlinePeriod period) {
     return "101";  // 默认返回日线
 }
 
-}  //
+}  // namespace cppshares::data::providers

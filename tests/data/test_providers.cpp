@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "cppshares/data/data_types.hpp"
+#include "cppshares/data/providers/eastmoney_provider.hpp"
 #include "cppshares/data/providers/netease_provider.hpp"
 #include "cppshares/data/providers/sina_provider.hpp"
 #include "cppshares/data/providers/tencent_provider.hpp"
@@ -52,8 +53,22 @@ TEST_F(ProvidersTest, NeteaseProviderBasics) {
     EXPECT_EQ(provider.get_rate_limit(), 120);
 }
 
+// 测试东方财富提供者
+TEST_F(ProvidersTest, EastMoneyProviderBasics) {
+    EastMoneyProvider provider;
+
+    EXPECT_EQ(provider.get_name(), "EastMoney");
+    EXPECT_EQ(provider.get_priority(), 1);
+    EXPECT_EQ(provider.get_rate_limit(), 100);
+
+    // 测试健康检查（模拟）
+    // 注意：实际测试时可能需要网络连接
+    // EXPECT_TRUE(provider.health_check());
+}
+
 // 测试提供者优先级排序
 TEST_F(ProvidersTest, ProviderPriorities) {
+    auto eastmoney = std::make_unique<EastMoneyProvider>();
     auto netease = std::make_unique<NeteaseProvider>();
     auto sina = std::make_unique<SinaProvider>();
     auto tencent = std::make_unique<TencentProvider>();
@@ -62,6 +77,7 @@ TEST_F(ProvidersTest, ProviderPriorities) {
     providers.push_back(std::move(sina));
     providers.push_back(std::move(tencent));
     providers.push_back(std::move(netease));
+    providers.push_back(std::move(eastmoney));
 
     // 按优先级排序（数字越小优先级越高）
     std::sort(providers.begin(), providers.end(), [](const auto& a, const auto& b) {
@@ -69,9 +85,10 @@ TEST_F(ProvidersTest, ProviderPriorities) {
     });
 
     // 验证排序结果
-    EXPECT_EQ(providers[0]->get_name(), "NeteaseFinance");  // priority = 5
-    EXPECT_EQ(providers[1]->get_name(), "SinaFinance");     // priority = 10
-    EXPECT_EQ(providers[2]->get_name(), "TencentFinance");  // priority = 15
+    EXPECT_EQ(providers[0]->get_name(), "EastMoney");       // priority = 1
+    EXPECT_EQ(providers[1]->get_name(), "NeteaseFinance");  // priority = 5
+    EXPECT_EQ(providers[2]->get_name(), "SinaFinance");     // priority = 10
+    EXPECT_EQ(providers[3]->get_name(), "TencentFinance");  // priority = 15
 }
 
 // 注意: 符号格式转换现已移至各provider内部实现
@@ -88,6 +105,7 @@ TEST_F(ProvidersTest, SymbolBasicValidation) {
 // 集成测试：多提供者协作
 TEST_F(ProvidersTest, MultiProviderIntegration) {
     std::vector<std::unique_ptr<DataProvider>> providers;
+    providers.push_back(std::make_unique<EastMoneyProvider>());
     providers.push_back(std::make_unique<NeteaseProvider>());
     providers.push_back(std::make_unique<SinaProvider>());
     providers.push_back(std::make_unique<TencentProvider>());

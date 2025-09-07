@@ -1,6 +1,7 @@
 #pragma once
 
 #include <httplib.h>
+
 #include <nlohmann/json.hpp>
 
 #include "../data_strategy.hpp"
@@ -23,7 +24,7 @@ public:
                                       int limit = 100) override;
 
     std::string get_name() const override { return "EastMoney"; }
-    int get_priority() const override { return 9; }      // 优先级略低于新浪
+    int get_priority() const override { return 1; }      // 最高优先级
     int get_rate_limit() const override { return 100; }  // 每分钟100次
 
     bool health_check() override;
@@ -43,4 +44,4 @@ private:
     std::string period_to_eastmoney_format(KlinePeriod period);
 };
 
-}  //
+}  // namespace cppshares::data::providers
