@@ -1,0 +1,89 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        build_type: [Debug, Release]
+        
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        
+    - name: Install Conan
+      run: |
+        pip install conan>=2.0.0
+        conan profile detect --force
+        
+    - name: Cache Conan packages
+      uses: actions/cache@v3
+      with:
+        path: ~/.conan2
+        key: conan-${{ runner.os }}-${{ hashFiles('conanfile.txt') }}
+        restore-keys: |
+          conan-${{ runner.os }}-
+          
+    - name: Install dependencies
+      run: |
+        conan install . --output-folder=cmake/conan --build=missing \
+          -s build_type=${{ matrix.build_type }}
+        
+    - name: Configure CMake
+      run: cmake --preset conan-${{ matrix.build_type == 'Debug' && 'debug' || 'release' }}
+      
+    - name: Build
+      run: cmake --build --preset conan-${{ matrix.build_type == 'Debug' && 'debug' || 'release' }}
+      
+    - name: Test
+      run: ctest --preset conan-${{ matrix.build_type == 'Debug' && 'debug' || 'release' }} --verbose
+      
+    - name: Upload test results
+      if: failure()
+      uses: actions/upload-artifact@v3
+      with:
+        name: test-results-${{ matrix.os }}-${{ matrix.build_type }}
+        path: |
+          cmake/conan/Testing/
+          *.log
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Install clang-format
+      run: sudo apt-get update && sudo apt-get install -y clang-format
+      
+    - name: Check formatting
+      run: |
+        find src include tests -name '*.cpp' -o -name '*.hpp' | \
+        xargs clang-format --dry-run --Werror
+
+  security:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Run security scan
+      uses: github/super-linter@v4
+      env:
+        DEFAULT_BRANCH: main
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        VALIDATE_CPP: true
+        VALIDATE_CMAKE: true
