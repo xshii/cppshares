@@ -167,3 +167,83 @@ cmake --build --preset debug && ctest --preset debug
 - **tasks.json** - Build, test, and run tasks
 - **launch.json** - Debug application and specific tests
 - Integrated with CMake presets for seamless development
+
+## Code Generation Guidelines for Claude
+
+### Code Formatting Standards
+**CRITICAL**: This project uses clang-format. ALL generated code MUST be format-compliant from the start.
+
+#### Pre-Generation Checklist
+1. **Read .clang-format configuration** before writing any code
+2. **Analyze existing code patterns** in the target file/directory  
+3. **Check line length limits** (typically 100 characters)
+4. **Verify indentation consistency** with surrounding code
+
+#### Formatting Rules to Follow
+- **Line Length**: Keep lines under 100 characters
+- **Long Statements**: Break long expressions at logical points
+- **Output Streams**: Split long cout statements into multiple shorter ones
+- **Function Calls**: Break long parameter lists across lines
+- **Logical Operators**: Place operators at end of line when breaking
+- **Trailing Spaces**: Never leave trailing whitespace
+
+#### Common Patterns
+
+**❌ AVOID - Long cout statements:**
+```cpp
+std::cout << "Very long message with lots of variables " << var1 << " and more text " << var2 << " ending here" << std::endl;
+```
+
+**✅ PREFER - Split cout statements:**
+```cpp
+std::cout << "Message with variable: " << var1 << std::endl;
+std::cout << "Additional info: " << var2 << std::endl;
+```
+
+**❌ AVOID - Long function calls:**
+```cpp
+auto result = some_function(very_long_parameter_name, another_long_parameter, third_parameter);
+```
+
+**✅ PREFER - Multi-line function calls:**
+```cpp
+auto result = some_function(very_long_parameter_name,
+                           another_long_parameter,
+                           third_parameter);
+```
+
+**❌ AVOID - Long conditional expressions:**
+```cpp
+if (condition1 && condition2 && condition3 && condition4) {
+```
+
+**✅ PREFER - Multi-line conditionals:**
+```cpp
+if (condition1 && condition2 &&
+    condition3 && condition4) {
+```
+
+#### Testing Code Patterns
+- **CI Detection**: Use consistent environment variable checking
+- **Test Data**: Maintain test symbols/data within functions as const vectors
+- **Network Tests**: Always check CI environment before network calls
+- **Output**: Use concise, informative test output messages
+
+#### Verification Steps
+Before completing code generation:
+1. **Visual scan** - Check for obviously long lines
+2. **Consistent indentation** - Verify alignment with existing code  
+3. **Logical breaks** - Ensure line breaks are at natural points
+4. **No trailing spaces** - Clean line endings
+
+### Automated Formatting
+If formatting violations occur:
+```bash
+# Format specific file
+clang-format -i path/to/file.cpp
+
+# Format multiple files  
+clang-format -i src/**/*.cpp include/**/*.hpp tests/**/*.cpp
+```
+
+**Remember**: It's better to write correctly formatted code initially than to fix it post-generation. This saves time and reduces commit noise.
