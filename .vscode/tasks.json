@@ -170,7 +170,7 @@
             "dependsOrder": "sequence",
             "dependsOn": [
                 "Build Debug",
-                "Run Tests"
+                "Run GTest"
             ],
             "group": "test",
             "problemMatcher": []
