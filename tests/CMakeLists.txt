@@ -5,7 +5,7 @@ find_package(GTest REQUIRED)
 file(GLOB CORE_TEST_SOURCES "core/*.cpp")
 
 # Collect data tests
-file(GLOB DATA_TEST_SOURCES "data/*.cpp")
+file(GLOB_RECURSE DATA_TEST_SOURCES "data/*.cpp")
 
 # Collect all test sources
 set(TEST_SOURCES ${CORE_TEST_SOURCES} ${DATA_TEST_SOURCES})

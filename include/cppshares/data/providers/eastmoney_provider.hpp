@@ -7,6 +7,7 @@
 #include "../data_strategy.hpp"
 #include "../data_types.hpp"
 #include "../market_data.hpp"
+#include "eastmoney_fields.hpp"
 
 namespace cppshares::data::providers {
 

@@ -320,6 +320,22 @@ public:
     static void log_data(const RecordType& record) {
         instance().log_data(record);
     }
+
+    // JSON 响应日志方法
+    static void log_json_response(const std::string& provider_name,
+                                  const std::string& operation_type,
+                                  const std::string& symbol,
+                                  const std::string& json_response);
+
+    template <typename... Args>
+    static void debug(spdlog::format_string_t<Args...> fmt, Args&&... args) {
+        instance().debug(fmt, std::forward<Args>(args)...);
+    }
+
+    template <typename... Args>
+    static void warn(spdlog::format_string_t<Args...> fmt, Args&&... args) {
+        instance().warn(fmt, std::forward<Args>(args)...);
+    }
 };
 
 }  // namespace cppshares::utils
