@@ -11,10 +11,12 @@ protected:
 
 TEST_F(EastMoneyFieldsTest, RealtimeFieldsTest) {
     // 测试实时行情字段常量
-    EXPECT_STREQ(EastMoneyFields::Realtime::LATEST_PRICE, "f43");
-    EXPECT_STREQ(EastMoneyFields::Realtime::VOLUME, "f47");
-    EXPECT_STREQ(EastMoneyFields::Realtime::HIGH_PRICE, "f44");
-    EXPECT_STREQ(EastMoneyFields::Realtime::LOW_PRICE, "f45");
+    EXPECT_STREQ(EastMoneyFields::Realtime::LATEST_PRICE, "f2");
+    EXPECT_STREQ(EastMoneyFields::Realtime::VOLUME, "f5");
+    EXPECT_STREQ(EastMoneyFields::Realtime::HIGH_PRICE, "f15");
+    EXPECT_STREQ(EastMoneyFields::Realtime::LOW_PRICE, "f16");
+    EXPECT_STREQ(EastMoneyFields::Realtime::STOCK_CODE, "f12");
+    EXPECT_STREQ(EastMoneyFields::Realtime::STOCK_NAME, "f14");
 }
 
 TEST_F(EastMoneyFieldsTest, KlineIndicesTest) {
@@ -30,22 +32,24 @@ TEST_F(EastMoneyFieldsTest, KlineIndicesTest) {
 TEST_F(EastMoneyFieldsTest, FieldSetsTest) {
     // 测试字段组合
     std::string basic_quote = EastMoneyFields::FieldSets::BASIC_QUOTE;
-    EXPECT_TRUE(basic_quote.find("f43") != std::string::npos);
-    EXPECT_TRUE(basic_quote.find("f47") != std::string::npos);
+    EXPECT_TRUE(basic_quote.find("f2") != std::string::npos);  // 最新价
+    EXPECT_TRUE(basic_quote.find("f5") != std::string::npos);  // 总手(成交量)
+    EXPECT_TRUE(basic_quote.find("f17") != std::string::npos); // 开盘价
 }
 
 TEST_F(EastMoneyFieldsTest, FieldDescriptionTest) {
     // 测试字段描述功能
-    EXPECT_EQ(EastMoneyFields::get_field_description("f43"), "最新价格/投资收益");
+    EXPECT_EQ(EastMoneyFields::get_field_description("f2"), "最新价");
     EXPECT_EQ(EastMoneyFields::get_field_description("f12"), "股票代码");
+    EXPECT_EQ(EastMoneyFields::get_field_description("f43"), "投资收益");
     EXPECT_EQ(EastMoneyFields::get_field_description("f999"), "未知字段");
 }
 
-TEST_F(EastMoneyFieldsTest, BasicFieldsTest) {
-    // 测试基本信息字段
-    EXPECT_STREQ(EastMoneyFields::Basic::STOCK_CODE, "f12");
-    EXPECT_STREQ(EastMoneyFields::Basic::STOCK_NAME, "f14");
-    EXPECT_STREQ(EastMoneyFields::Basic::MARKET_VALUE, "f20");
+TEST_F(EastMoneyFieldsTest, ExtendedFieldsTest) {
+    // 测试扩展信息字段
+    EXPECT_STREQ(EastMoneyFields::Extended::CHANGE_60D, "f24");
+    EXPECT_STREQ(EastMoneyFields::Extended::LISTING_DATE, "f26");
+    EXPECT_STREQ(EastMoneyFields::Extended::INDUSTRY, "f100");
 }
 
 TEST_F(EastMoneyFieldsTest, FinancialFieldsTest) {
