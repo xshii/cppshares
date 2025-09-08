@@ -69,8 +69,6 @@ std::string EastMoneyProvider::format_symbol_for_eastmoney(const Symbol& symbol)
 
 std::optional<MarketTick> EastMoneyProvider::parse_realtime_response(const std::string& response,
                                                                      const Symbol& symbol) {
-    // 记录JSON响应到文件
-    utils::Logger::log_json_response("EastMoney", "realtime", symbol.to_string(), response);
 
     try {
         auto json = nlohmann::json::parse(response);
@@ -87,10 +85,16 @@ std::optional<MarketTick> EastMoneyProvider::parse_realtime_response(const std::
             tick.price = json["data"][EastMoneyFields::Realtime::LATEST_PRICE].get<double>();
             tick.volume = json["data"].value(EastMoneyFields::Realtime::VOLUME, 0);
             tick.timestamp = std::chrono::system_clock::now();
+            
+            // 成功解析数据后记录JSON响应
+            utils::Logger::log_json_response("EastMoney", "realtime", symbol.to_string(), response);
+            
             return tick;
         }
-    } catch (const std::exception&) {
-        // JSON解析失败，返回空值
+    } catch (const std::exception& e) {
+        // 异常时记录JSON响应用于调试
+        utils::Logger::log_json_response("EastMoney", "realtime_error", symbol.to_string(), response);
+        utils::Logger::error("EastMoney realtime parse error for symbol {}: {}", symbol.to_string(), e.what());
     }
     return std::nullopt;
 }
@@ -99,8 +103,6 @@ std::vector<OHLCV> EastMoneyProvider::parse_kline_response(const std::string& re
                                                            const Symbol& symbol) {
     std::vector<OHLCV> klines;
 
-    // 记录JSON响应到文件
-    utils::Logger::log_json_response("EastMoney", "kline", symbol.to_string(), response);
 
     try {
         auto json = nlohmann::json::parse(response);
@@ -192,16 +194,25 @@ std::vector<OHLCV> EastMoneyProvider::parse_kline_response(const std::string& re
             }
         }
 
+        // 成功解析数据后记录JSON响应
+        if (!klines.empty()) {
+            utils::Logger::log_json_response("EastMoney", "kline", symbol.to_string(), response);
+        }
+        
         utils::Logger::info("EastMoney: Successfully parsed {} klines for symbol {}",
                             klines.size(),
                             symbol.to_string());
 
     } catch (const nlohmann::json::parse_error& e) {
+        // 异常时记录JSON响应用于调试
+        utils::Logger::log_json_response("EastMoney", "kline_parse_error", symbol.to_string(), response);
         utils::Logger::error("EastMoney: JSON parse error for symbol {}: {} at byte {}",
                              symbol.to_string(),
                              e.what(),
                              e.byte);
     } catch (const std::exception& e) {
+        // 异常时记录JSON响应用于调试
+        utils::Logger::log_json_response("EastMoney", "kline_error", symbol.to_string(), response);
         utils::Logger::error("EastMoney: Unexpected error parsing klines for symbol {}: {}",
                              symbol.to_string(),
                              e.what());
